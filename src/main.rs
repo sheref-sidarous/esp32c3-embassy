@@ -4,6 +4,7 @@
 
 #![no_std]
 #![no_main]
+#![feature(type_alias_impl_trait)]
 
 use esp32c3_hal::{
     clock::ClockControl,
@@ -16,12 +17,12 @@ use esp32c3_hal::{
     Rtc,
 };
 
-// use esp_backtrace as _;
-use riscv_rt::entry;
+use embassy_executor::Spawner;
+
 use panic_halt as _;
 
-#[entry]
-fn main() -> ! {
+#[embassy_executor::main]
+async fn main(_spawner: Spawner) {
     let peripherals = Peripherals::take().unwrap();
     let system = peripherals.SYSTEM.split();
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
@@ -47,10 +48,10 @@ fn main() -> ! {
 
     // Initialize the Delay peripheral, and use it to toggle the LED state in a
     // loop.
-    let mut delay = Delay::new(&clocks);
+    //let mut delay = Delay::new(&clocks);
 
     loop {
         led.toggle().unwrap();
-        delay.delay_ms(500u32);
+        //delay.delay_ms(500u32);
     }
 }
