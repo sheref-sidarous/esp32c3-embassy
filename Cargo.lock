@@ -122,6 +122,7 @@ dependencies = [
  "cfg-if",
  "critical-section",
  "embassy-macros",
+ "embassy-time",
  "futures-util",
  "static_cell",
 ]
@@ -134,6 +135,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "embassy-time"
+version = "0.1.0"
+dependencies = [
+ "atomic-polyfill",
+ "cfg-if",
+ "critical-section",
+ "embassy-macros",
+ "embedded-hal 0.2.7",
+ "embedded-hal-async",
+ "futures-util",
 ]
 
 [[package]]
@@ -153,6 +167,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3babfc7fd332142a0b11aebf592992f211f4e01b6222fb04b03aba1bd80018d"
 dependencies = [
  "nb 1.0.0",
+]
+
+[[package]]
+name = "embedded-hal-async"
+version = "0.1.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "022249738afde9b2b755a28a367ae20c9367e8e9c24b9aaf60bcc9255a255ec5"
+dependencies = [
+ "embedded-hal 1.0.0-alpha.8",
 ]
 
 [[package]]
@@ -200,6 +223,7 @@ name = "esp32c3-embassy"
 version = "0.1.0"
 dependencies = [
  "embassy-executor",
+ "embassy-time",
  "esp32c3-hal",
  "panic-halt",
  "riscv-rt",

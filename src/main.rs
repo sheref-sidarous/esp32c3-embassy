@@ -9,13 +9,19 @@
 use esp32c3_hal::{
     clock::ClockControl,
     gpio::IO,
-    pac::Peripherals,
+//    pac::Peripherals,
+    pac::{self, Peripherals},
     prelude::*,
     system::SystemExt,
     timer::TimerGroup,
     Delay,
     Rtc,
+    systimer::{Alarm, Periodic, SystemTimer, Target},
+    interrupt,
 };
+use core::cell::{RefCell, RefMut, Ref};
+use embassy_time::{Duration, Timer};
+use embassy_time::driver::{AlarmHandle, Driver};
 
 use embassy_executor::Spawner;
 
@@ -52,6 +58,72 @@ async fn main(_spawner: Spawner) {
 
     loop {
         led.toggle().unwrap();
+        Timer::after(Duration::from_millis(1000)).await;
         //delay.delay_ms(500u32);
     }
+}
+
+struct EmbassyTimeDriver {
+    alarm_allocatd : bool,
+}
+
+static mut esp_alam: RefCell<Option<Alarm<Target, 0>>> = RefCell::new(None);
+//static mut esp_systimer : RefCell<Option<SystemTimer>> = RefCell::new(None);
+static mut callback_fn : RefCell<Option<fn(*mut ())>> = RefCell::new(None);
+static mut xx : i32 = 5;
+static mut callback_context : *mut () = core::ptr::null_mut();
+
+
+impl Driver for EmbassyTimeDriver {
+
+    fn now(&self) -> u64 {
+        SystemTimer::now()
+    }
+
+    unsafe fn allocate_alarm(&self) -> Option<AlarmHandle> {
+/*
+        if self.alarm_allocatd {
+            None
+        } else {
+            self.alarm_allocatd = true;
+            Some(AlarmHandle::new(0))
+        }
+        */
+        Some(AlarmHandle::new(0))
+    }
+
+    fn set_alarm_callback(&self, _alarm: AlarmHandle, callback: fn(*mut ()), ctx: *mut ()) {
+
+        unsafe {
+        callback_fn.replace(Some(callback));
+        callback_context = ctx;
+        }
+    }
+
+    fn set_alarm(&self, alarm: AlarmHandle, timestamp: u64) {
+        unsafe {
+            esp_alam.borrow().as_ref().unwrap().set_target(timestamp);
+            esp_alam.borrow().as_ref().unwrap().enable_interrupt();
+        }
+    }
+}
+
+
+embassy_time::time_driver_impl!(static DRIVER: EmbassyTimeDriver = EmbassyTimeDriver {
+    alarm_allocatd: false
+});
+
+#[interrupt]
+unsafe fn SYSTIMER_TARGET0() {
+
+    let x = callback_fn.borrow();
+    let callback = x.as_ref().unwrap();
+    //let cntxt = callback_context.borrow().as_ref().unwrap();
+
+    callback(callback_context);
+
+    let a : Ref<Option<Alarm<Target, 0>>> = esp_alam.borrow();
+    let b : Option<&Alarm<Target, 0>> = a.as_ref();
+    let c : &Alarm<Target, 0> = b.unwrap();
+    c.clear_interrupt();
 }
