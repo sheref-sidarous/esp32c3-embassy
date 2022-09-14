@@ -18,6 +18,7 @@ use esp32c3_hal::{
     Rtc,
     systimer::{Alarm, Periodic, SystemTimer, Target},
     interrupt,
+    interrupt::Priority,
 };
 use core::cell::{RefCell, RefMut, Ref};
 use embassy_time::{Duration, Timer};
@@ -45,6 +46,16 @@ async fn main(_spawner: Spawner) {
     rtc.rwdt.disable();
     wdt0.disable();
     wdt1.disable();
+
+    
+
+    let syst = SystemTimer::new(peripherals.SYSTIMER);
+    let alarm0 = syst.alarm0;
+
+    unsafe {
+        esp_alam.replace(Some(alarm0));
+    }
+
 
     // Set GPIO5 as an output, and set its state high initially.
     let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
@@ -104,6 +115,7 @@ impl Driver for EmbassyTimeDriver {
         unsafe {
             esp_alam.borrow().as_ref().unwrap().set_target(timestamp);
             esp_alam.borrow().as_ref().unwrap().enable_interrupt();
+            interrupt::enable(pac::Interrupt::SYSTIMER_TARGET0, Priority::Priority1).unwrap();
         }
     }
 }
