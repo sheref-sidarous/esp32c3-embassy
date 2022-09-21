@@ -81,7 +81,6 @@ struct EmbassyTimeDriver {
 static mut esp_alam: RefCell<Option<Alarm<Target, 0>>> = RefCell::new(None);
 //static mut esp_systimer : RefCell<Option<SystemTimer>> = RefCell::new(None);
 static mut callback_fn : RefCell<Option<fn(*mut ())>> = RefCell::new(None);
-static mut xx : i32 = 5;
 static mut callback_context : *mut () = core::ptr::null_mut();
 
 
