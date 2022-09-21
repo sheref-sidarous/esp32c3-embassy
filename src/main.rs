@@ -6,6 +6,12 @@
 #![no_main]
 #![feature(type_alias_impl_trait)]
 
+#![allow(non_upper_case_globals)]
+#![allow(dead_code)]
+#![allow(non_camel_case_types)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 use esp32c3_hal::{
     clock::ClockControl,
     gpio::IO,
@@ -27,6 +33,8 @@ use embassy_time::driver::{AlarmHandle, Driver};
 use embassy_executor::Spawner;
 
 use panic_halt as _;
+
+mod gpio;
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
@@ -63,12 +71,15 @@ async fn main(_spawner: Spawner) {
 
     led.set_high().unwrap();
 
+    let button = gpio::EmbGPIO::new(io.pins.gpio9);
+
     // Initialize the Delay peripheral, and use it to toggle the LED state in a
     // loop.
     //let mut delay = Delay::new(&clocks);
 
     loop {
         led.toggle().unwrap();
+        button.toggled().await;
         Timer::after(Duration::from_millis(1000)).await;
         //delay.delay_ms(500u32);
     }
