@@ -42,6 +42,7 @@ impl Copy for ToggledFuture {}
 
 static recently_toggled : Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
 static BUTTON: Mutex<RefCell<Option<Gpio9<Input<PullDown>>>>> = Mutex::new(RefCell::new(None));
+static waker: Mutex<RefCell<Option<Waker>>> = Mutex::new(RefCell::new(None));
 
 impl Future for ToggledFuture {
     type Output = ();
@@ -55,6 +56,9 @@ impl Future for ToggledFuture {
                 *recently_toggled_ref = false;
                 outcome = Poll::Ready(());
             }
+
+            waker.borrow_ref_mut(cs).replace(cx.waker().clone());
+
         });
 
         return outcome;
@@ -95,6 +99,13 @@ fn GPIO() {
             .clear_interrupt();
 
         *recently_toggled.borrow_ref_mut(cs) = true;
+
+        waker
+            .borrow_ref_mut(cs)
+            .as_mut()
+            .unwrap()
+            .wake_by_ref();
+
     });
 
     // TODO: call the waker
