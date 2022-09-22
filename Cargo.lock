@@ -222,6 +222,7 @@ dependencies = [
 name = "esp32c3-embassy"
 version = "0.1.0"
 dependencies = [
+ "critical-section",
  "embassy-executor",
  "embassy-time",
  "esp32c3-hal",
