@@ -80,7 +80,7 @@ async fn main(_spawner: Spawner) {
     loop {
         led.toggle().unwrap();
         button.toggled().await;
-        Timer::after(Duration::from_millis(1000)).await;
+        //Timer::after(Duration::from_millis(1000)).await;
         //delay.delay_ms(500u32);
     }
 }
